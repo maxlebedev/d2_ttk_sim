@@ -35,10 +35,6 @@ def test_crimson():
     ttks = [1.933, 1.299,1.399,1.733,1.299]
     check_ttk(example_weapons.crimson, ttks)
 
-
-
-
-
 if __name__ == "__main__":
     test_sturm()
     test_drang()

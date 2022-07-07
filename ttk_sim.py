@@ -171,11 +171,11 @@ def getInitialHealing():
 def getMidFightHeals():
     # -1000 chosen arbitrarily as some hp value that will never be reached
 
-    healing_nade_proc_hp = -1000.0 
+    healing_nade_proc_hp = -1000.0
     wormhusk_proc_hp = -1000.0
     classy_proc_hp = -1000.0
     loreley_proc_hp = -1000.0
-    
+
     if random.random() < healing_nade_during_fight_chance:
         while healing_nade_proc_hp <= 0:
             healing_nade_proc_hp = random.gauss(92.5, 30)
@@ -236,7 +236,7 @@ def gunfight(weapon):
         enemy_hp -= weapon.headshot_damage
     headshots += 1
     totShots += 1
-    
+
     # now start counting ttk for this gunfight
     while enemy_hp >= 0:  # shoot one shot at a time
         # consider time since last shot
