@@ -169,18 +169,16 @@ def getInitialHealing():
 
 
 def getMidFightHeals():
-    # -1000 chosen arbitrarily as some hp value that will never be reached
-
-    healing_nade_proc_hp = -1000.0
-    wormhusk_proc_hp = -1000.0
-    classy_proc_hp = -1000.0
-    loreley_proc_hp = -1000.0
+    healing_nade_proc_hp = None
+    wormhusk_proc_hp = None
+    classy_proc_hp = None
+    loreley_proc_hp = None
 
     def get_thresh():
         thresh = None
         while not thresh:
             thresh = random.gauss(92.5, 30)
-            if thresh >= 185:
+            if thresh >= 185 or thresh <= 0:
                 thresh = None
         return thresh
 
@@ -190,11 +188,11 @@ def getMidFightHeals():
     if random.random() < wormhusk_during_fight_chance:
         wormhusk_proc_hp = get_thresh()
 
-    if wormhusk_proc_hp < 0:
+    if not wormhusk_proc_hp or wormhusk_proc_hp < 0:
         if random.random() < classy_restoration_during_fight_chance:
             classy_proc_hp = get_thresh()
 
-    if (wormhusk_proc_hp < 0) and (classy_proc_hp < 0):
+    if not (wormhusk_proc_hp or classy_proc_hp):
         if random.random() < loreley_during_fight_chance:
             loreley_proc_hp = 70.0
 
@@ -213,6 +211,12 @@ def get_ttk(weapon):
 
 
 def gunfight(weapon):
+    def add_a_resto(duration):
+        """replace 2x restoration if it exists, otherwise add 1x restoration"""
+        if duration > 0:
+            return 0, 6
+        return 6, 0
+
     enemy_hp = getRandomHP() + getOvershield() - getInitialDamage()
     original_hp = enemy_hp
     restoration_x1_duration, restoration_x2_duration, rift_active = getInitialHealing()
@@ -224,9 +228,9 @@ def gunfight(weapon):
     ) = getMidFightHeals()
     totShots = 0  # total shots this fight
     ttk = 0.0  # total time taken to eliminate opponent this fight
-    headshots = round(
-        random.random()
-    )  # how many headshots have been hit this fight (used for dmt)
+
+    # how many headshots have been hit this fight (used for dmt)
+    headshots = round(random.random())
 
     # shoot one headshot initially
     if weapon.name == "dmt":
@@ -241,22 +245,18 @@ def gunfight(weapon):
 
         # if the time between the previous shot and this shot is the mid-burst time
         tick_time = weapon.mid_burst_time_between_shots
-        if (
-            totShots % weapon.burst_type == 0
-        ):  # else if the time between the previous shot and this shot is the between-bursts time
+        if totShots % weapon.burst_type == 0:
+            # else if the time between the previous shot and this shot is the between-bursts time
             tick_time = weapon.get_time_between_shots()
 
         ttk += tick_time
+
         # heal from restoration x1
-        if tick_time < restoration_x1_duration:
-            enemy_hp += restoration_x1_hp_per_s * tick_time
-        else:
-            enemy_hp += restoration_x1_hp_per_s * restoration_x1_duration
+        enemy_hp += restoration_x1_hp_per_s * min(tick_time, restoration_x1_duration)
+
         # heal from restoration x2
-        if tick_time < restoration_x2_duration:
-            enemy_hp += restoration_x2_hp_per_s * tick_time
-        else:
-            enemy_hp += restoration_x2_hp_per_s * restoration_x2_duration
+        enemy_hp += restoration_x2_hp_per_s * min(tick_time, restoration_x2_duration)
+
         # heal from rift
         if rift_active:
             enemy_hp += rift_hp_per_s * tick_time
@@ -266,62 +266,43 @@ def gunfight(weapon):
 
         # check for mid fight heals
         # healing nade
-        if enemy_hp < healing_nade_proc_hp:
+        if healing_nade_proc_hp and enemy_hp < healing_nade_proc_hp:
             enemy_hp += 30
             if random.random() < 0.67:  # restoration x1
-                if restoration_x2_duration > 0:
-                    restoration_x1_duration = 0.0
-                    restoration_x2_duration = 6.0  # refresh
-                else:
-                    restoration_x1_duration = 6.0
-                    restoration_x2_duration = 0.0
+                restoration_x1_duration, restoration_x2_duration = add_a_resto()
             else:  # restoration x2
                 restoration_x1_duration = 0.0
                 restoration_x2_duration = 6.0
-            healing_nade_proc_hp = -1000.0
+            healing_nade_proc_hp = None
         # wormhusk, assumes classy
-        if enemy_hp < wormhusk_proc_hp:
+        if wormhusk_proc_hp and enemy_hp < wormhusk_proc_hp:
             enemy_hp += 67
-            if restoration_x2_duration > 0:
-                restoration_x1_duration = 0.0
-                restoration_x2_duration = 6.0  # refresh
-            else:
-                restoration_x1_duration = 6.0
-                restoration_x2_duration = 0.0
-            wormhusk_proc_hp = -1000.0
+            restoration_x1_duration, restoration_x2_duration = add_a_resto()
+            wormhusk_proc_hp = None
         # classy
-        if enemy_hp < classy_proc_hp:
-            if restoration_x2_duration > 0:
-                restoration_x1_duration = 0.0
-                restoration_x2_duration = 6.0  # refresh
-            else:
-                restoration_x1_duration = 6.0
-                restoration_x2_duration = 0.0
-            classy_proc_hp = -1000.0
+        if classy_proc_hp and enemy_hp < classy_proc_hp:
+            restoration_x1_duration, restoration_x2_duration = add_a_resto()
+            classy_proc_hp = None
         # loreley
-        if enemy_hp < loreley_proc_hp:
+        if loreley_proc_hp and enemy_hp < loreley_proc_hp:
             restoration_x1_duration = 0.0
             restoration_x2_duration = 6.0
-            loreley_proc_hp = -1000.0
+            loreley_proc_hp = None
 
         # hit head, hit body, or miss
-        num = random.random()
-        if num < bodyshot_chance:  # if this shot is a bodyshot
+        shot_location = random.random()
+        if shot_location < bodyshot_chance:  # if this shot is a bodyshot
             if weapon.name == "dmt":
                 enemy_hp -= weapon.bodyshot_damage + (headshots) * 1.82
             else:
                 enemy_hp -= weapon.bodyshot_damage
 
-        elif (
-            bodyshot_chance <= num < (bodyshot_chance + headshot_chance)
-        ):  # if this shot is a headshot
+        elif shot_location < (bodyshot_chance + headshot_chance):
             if weapon.name == "dmt":
                 enemy_hp -= weapon.headshot_damage + (headshots) * 3.22
             else:
                 enemy_hp -= weapon.headshot_damage
             headshots += 1
-
-        # else: do nothing; it's a miss
 
         totShots += 1
     # print(f"enemy hp: {original_hp} ttk: {ttk}")
