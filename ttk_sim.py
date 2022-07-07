@@ -199,14 +199,14 @@ def getMidFightHeals():
     return healing_nade_proc_hp, wormhusk_proc_hp, classy_proc_hp, loreley_proc_hp
 
 
-def get_ttk(weapon):
-    tot_ttk = 0.0  # sum of all TTKs thus far
+def get_avg_ttk(weapon, iterations):
+    tot_ttk = 0.0
 
-    for _ in range(number_of_gunfights):
+    for _ in range(iterations):
         ttk = gunfight(weapon)
-        tot_ttk += ttk  # add this gunfight's ttk to the totalTTK
+        tot_ttk += ttk
 
-    avg_ttk = tot_ttk / number_of_gunfights
+    avg_ttk = tot_ttk / iterations
     return avg_ttk
 
 
@@ -218,7 +218,6 @@ def gunfight(weapon):
         return 6, 0
 
     enemy_hp = getRandomHP() + getOvershield() - getInitialDamage()
-    original_hp = enemy_hp
     restoration_x1_duration, restoration_x2_duration, rift_active = getInitialHealing()
     (
         healing_nade_proc_hp,
@@ -311,7 +310,6 @@ def gunfight(weapon):
             headshots += 1
 
         totShots += 1
-    # print(f"enemy hp: {original_hp} ttk: {ttk}")
     return ttk
 
 
@@ -319,7 +317,7 @@ if __name__ == "__main__":
     headshot_chance = float(input("Chance to headshot?\n")) / 100.0
     bodyshot_chance = float(input("Chance to bodyshot?\n")) / 100.0
     weapon = make_weapon()
-    avg_ttk = get_ttk(weapon)
+    avg_ttk = get_avg_ttk(weapon, number_of_gunfights)
     print(
         "Avg TTK of your gun under these circumstances is:\n",
         format(avg_ttk, ".3f"),
