@@ -176,24 +176,23 @@ def getMidFightHeals():
     classy_proc_hp = -1000.0
     loreley_proc_hp = -1000.0
 
+    def get_thresh():
+        thresh = None
+        while not thresh:
+            thresh = random.gauss(92.5, 30)
+            if thresh >= 185:
+                thresh = None
+        return thresh
+
     if random.random() < healing_nade_during_fight_chance:
-        while healing_nade_proc_hp <= 0:
-            healing_nade_proc_hp = random.gauss(92.5, 30)
-            if healing_nade_proc_hp >= 185.0:
-                healing_nade_proc_hp = -1000.0
+        healing_nade_proc_hp = get_thresh()
 
     if random.random() < wormhusk_during_fight_chance:
-        while wormhusk_proc_hp <= 0:
-            wormhusk_proc_hp = random.gauss(92.5, 30)
-            if wormhusk_proc_hp >= 185.0:
-                wormhusk_proc_hp = -1000.0
+        wormhusk_proc_hp = get_thresh()
 
     if wormhusk_proc_hp < 0:
         if random.random() < classy_restoration_during_fight_chance:
-            while classy_proc_hp <= 0:
-                classy_proc_hp = random.gauss(92.5, 30)
-                if classy_proc_hp >= 185.0:
-                    classy_proc_hp = -1000.0
+            classy_proc_hp = get_thresh()
 
     if (wormhusk_proc_hp < 0) and (classy_proc_hp < 0):
         if random.random() < loreley_during_fight_chance:
@@ -237,8 +236,7 @@ def gunfight(weapon):
     headshots += 1
     totShots += 1
 
-    # now start counting ttk for this gunfight
-    while enemy_hp >= 0:  # shoot one shot at a time
+    while enemy_hp >= 0:
         # consider time since last shot
 
         # if the time between the previous shot and this shot is the mid-burst time
