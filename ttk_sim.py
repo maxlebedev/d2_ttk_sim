@@ -32,11 +32,11 @@ headshot_chance = 0
 @dataclass
 class Weapon:
     name: str = ""
-    mid_burst_time_between_shots: int = 0
+    mid_burst_time_between_shots: float = 0.0
     burst_type: int = 0
-    rpm: int = 0
-    headshot_damage: int = 0
-    bodyshot_damage: int = 0
+    rpm: float = 0.0
+    headshot_damage: float = 0.0
+    bodyshot_damage: float = 0.0
 
     def get_time_between_shots(self):
         time_between_bursts = (self.burst_type - 1) * self.mid_burst_time_between_shots
@@ -269,7 +269,9 @@ def gunfight(weapon):
         if healing_nade_proc_hp and enemy_hp < healing_nade_proc_hp:
             enemy_hp += 30
             if random.random() < 0.67:  # restoration x1
-                restoration_x1_duration, restoration_x2_duration = add_a_resto()
+                restoration_x1_duration, restoration_x2_duration = add_a_resto(
+                    restoration_x2_duration
+                )
             else:  # restoration x2
                 restoration_x1_duration = 0.0
                 restoration_x2_duration = 6.0
@@ -277,11 +279,15 @@ def gunfight(weapon):
         # wormhusk, assumes classy
         if wormhusk_proc_hp and enemy_hp < wormhusk_proc_hp:
             enemy_hp += 67
-            restoration_x1_duration, restoration_x2_duration = add_a_resto()
+            restoration_x1_duration, restoration_x2_duration = add_a_resto(
+                restoration_x2_duration
+            )
             wormhusk_proc_hp = None
         # classy
         if classy_proc_hp and enemy_hp < classy_proc_hp:
-            restoration_x1_duration, restoration_x2_duration = add_a_resto()
+            restoration_x1_duration, restoration_x2_duration = add_a_resto(
+                restoration_x2_duration
+            )
             classy_proc_hp = None
         # loreley
         if loreley_proc_hp and enemy_hp < loreley_proc_hp:
