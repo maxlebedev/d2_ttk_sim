@@ -120,7 +120,7 @@ def getOvershield():
         num = random.random()
         if num < 0.375:  # 3 in 8 chance the overshield is a full barricade overshield
             overshield = 45.0
-        elif 0.375 <= num < 0.875:  # 4 in 8 chance it's a warlock rift overshield
+        elif num < 0.875:  # 4 in 8 chance it's a warlock rift overshield
             overshield = random.triangular(0.0, 17.0, 0.0)
         else:  # 1 in 8 chance it's a partial barricade overshield
             overshield = random.triangular(0.0, 45.0, 0.0)
@@ -215,9 +215,9 @@ def get_avg_ttk(weapon, iterations):
 
 
 def gunfight(weapon):
-    def add_a_resto(duration):
-        """replace 2x restoration if it exists, otherwise add 1x restoration"""
-        if duration > 0:
+    def refresh_resto():
+        """refresh 2x restoration if it exists, otherwise add 1x restoration"""
+        if restoration_x2_duration > 0:
             return 0, 6
         return 6, 0
 
@@ -229,7 +229,7 @@ def gunfight(weapon):
         classy_proc_hp,
         loreley_proc_hp,
     ) = getMidFightHeals()
-    totShots = 0  # total shots this fight
+    total_shots = 0  # total shots this fight
     ttk = 0.0  # total time taken to eliminate opponent this fight
 
     # how many headshots have been hit this fight (used for dmt)
@@ -241,14 +241,12 @@ def gunfight(weapon):
     else:
         enemy_hp -= weapon.headshot_damage
     headshots += 1
-    totShots += 1
+    total_shots += 1
 
     while enemy_hp >= 0:
-        # consider time since last shot
-
         # if the time between the previous shot and this shot is the mid-burst time
         tick_time = weapon.mid_burst_time_between_shots
-        if totShots % weapon.burst_type == 0:
+        if total_shots % weapon.burst_type == 0:
             # else if the time between the previous shot and this shot is the between-bursts time
             tick_time = weapon.get_time_between_shots()
 
@@ -272,9 +270,7 @@ def gunfight(weapon):
         if healing_nade_proc_hp and enemy_hp < healing_nade_proc_hp:
             enemy_hp += healing_nade_heal
             if random.random() < 0.67:  # restoration x1
-                restoration_x1_duration, restoration_x2_duration = add_a_resto(
-                    restoration_x2_duration
-                )
+                restoration_x1_duration, restoration_x2_duration = refresh_resto()
             else:  # restoration x2
                 restoration_x1_duration = 0.0
                 restoration_x2_duration = 6.0
@@ -282,15 +278,11 @@ def gunfight(weapon):
         # wormhusk, assumes classy
         if wormhusk_proc_hp and enemy_hp < wormhusk_proc_hp:
             enemy_hp += 67
-            restoration_x1_duration, restoration_x2_duration = add_a_resto(
-                restoration_x2_duration
-            )
+            restoration_x1_duration, restoration_x2_duration = refresh_resto()
             wormhusk_proc_hp = None
         # classy
         if classy_proc_hp and enemy_hp < classy_proc_hp:
-            restoration_x1_duration, restoration_x2_duration = add_a_resto(
-                restoration_x2_duration
-            )
+            restoration_x1_duration, restoration_x2_duration = refresh_resto()
             classy_proc_hp = None
         # loreley
         if loreley_proc_hp and enemy_hp < loreley_proc_hp:
@@ -299,27 +291,27 @@ def gunfight(weapon):
             loreley_proc_hp = None
 
         # hit head, hit body, or miss
-        shot_location = random.random()
-        if shot_location < Odds.bodyshot:  # if this shot is a bodyshot
+        shot_location = random.randint(0, 100)
+        if shot_location < Odds.bodyshot:
             if weapon.name == "dmt":
                 enemy_hp -= weapon.bodyshot_damage + (headshots) * 1.82
             else:
                 enemy_hp -= weapon.bodyshot_damage
 
-        elif shot_location < (Odds.bodyshot + headshot_chance):
+        elif shot_location < (Odds.bodyshot + Odds.headshot):
             if weapon.name == "dmt":
                 enemy_hp -= weapon.headshot_damage + (headshots) * 3.22
             else:
                 enemy_hp -= weapon.headshot_damage
             headshots += 1
 
-        totShots += 1
+        total_shots += 1
     return ttk
 
 
 if __name__ == "__main__":
-    Odds.headshot = float(input("Chance to headshot?\n")) / 100.0
-    Odds.bodyshot = float(input("Chance to bodyshot?\n")) / 100.0
+    Odds.headshot = float(input("Chance to headshot?\n")) / 100
+    Odds.bodyshot = float(input("Chance to bodyshot?\n")) / 100
     weapon = make_weapon()
     avg_ttk = get_avg_ttk(weapon, number_of_gunfights)
     print(
