@@ -3,7 +3,7 @@ import yaml
 from types import SimpleNamespace
 
 import ttk_sim
-import example_weapons as ew
+import weapons
 
 ttk_sim.Odds.headshot = 60
 ttk_sim.Odds.bodyshot = 30
@@ -29,31 +29,31 @@ def check_ttk(weapon, expected_ttks):
 
 def test_sturm():
     random.seed(1)
-    check_ttk(ew.sturm, td.sturm)
+    check_ttk(weapons.sturm, td.sturm)
 
 
 def test_drang():
     random.seed(1)
-    check_ttk(ew.drang, td.drang)
+    check_ttk(weapons.drang, td.drang)
 
 
 def test_pom():
     random.seed(1)
-    check_ttk(ew.piece_of_mind, td.piece_of_mind)
+    check_ttk(weapons.piece_of_mind, td.piece_of_mind)
 
 
 def test_dmt():
     random.seed(1)
-    check_ttk(ew.dmt, td.dmt)
+    check_ttk(weapons.dmt, td.dmt)
 
 
 def test_crimson():
     random.seed(1)
-    check_ttk(ew.crimson, td.crimson)
+    check_ttk(weapons.crimson, td.crimson)
 
 
 def generate_test():
-    for weapon in [ew.piece_of_mind, ew.sturm, ew.drang, ew.dmt, ew.crimson]:
+    for weapon in [weapons.piece_of_mind, weapons.sturm, weapons.drang, weapons.dmt, weapons.crimson]:
         random.seed(1)
         pt = []
         for _ in range(40):

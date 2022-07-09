@@ -9,6 +9,8 @@
 from dataclasses import dataclass
 import random
 
+import weapons
+
 number_of_gunfights = 10000  # decrease this for faster simulation times; increase for more precise results
 
 
@@ -33,19 +35,6 @@ rift_hp_per_s = 40
 healing_nade_heal = 30
 
 
-@dataclass
-class Weapon:
-    name: str = ""
-    mid_burst_time_between_shots: float = 0.0
-    burst_type: int = 0
-    rpm: float = 0.0
-    headshot_damage: float = 0.0
-    bodyshot_damage: float = 0.0
-
-    def get_time_between_shots(self):
-        time_between_bursts = (self.burst_type - 1) * self.mid_burst_time_between_shots
-        return 60.0 * self.burst_type / self.rpm - time_between_bursts
-
 
 class RangeDict(dict):
     def __getitem__(self, item):
@@ -60,27 +49,18 @@ class RangeDict(dict):
 
 def make_weapon():
     burst_type_prompt = "If your gun is semi-auto or automatic, type 1. If your gun is a burst-fire weapon, type the number of bullets per burst. When ready, hit Enter.\n"
-    burst_type = int(input(burst_type_prompt))
-    weapon = Weapon()
+    burst_type = input(burst_type_prompt)
+    weapon = weapons.Weapon()
 
     if burst_type == "2":
         weapon.burst_type = 2
         weapon.mid_burst_time_between_shots = 60.0 / 600.0
         # aggressive burst sidearms have a different time between shots, mid-burst than pulse rifles
     elif burst_type == "crimson":
-        weapon.name = "crimson"
-        weapon.burst_type = 3
-        weapon.bodyshot_damage = 19.0
-        weapon.headshot_damage = 30.5
-        weapon.rpm = 415.385
-        weapon.mid_burst_time_between_shots = 60.0 / 600.0
+        weapon = weapons.crimson
         # crimson has a different time between shots, mid-burst than pulse rifles
     elif burst_type == "dmt":
-        weapon.name = "dmt"
-        weapon.burst_type = 1
-        weapon.bodyshot_damage = 45.5
-        weapon.headshot_damage = 80.5
-        weapon.rpm = 120
+        weapon = weapons.dmt
     else:
         weapon.burst_type = int(burst_type)
         weapon.mid_burst_time_between_shots = 60.0 / 900.0
@@ -310,12 +290,9 @@ def gunfight(weapon):
 
 
 if __name__ == "__main__":
-    Odds.headshot = float(input("Chance to headshot?\n")) / 100
-    Odds.bodyshot = float(input("Chance to bodyshot?\n")) / 100
+    Odds.headshot = float(input("Percent chance to headshot?\n"))
+    Odds.bodyshot = float(input("Percent chance to bodyshot?\n"))
     weapon = make_weapon()
     avg_ttk = get_avg_ttk(weapon, number_of_gunfights)
-    print(
-        "Avg TTK of your gun under these circumstances is:\n",
-        format(avg_ttk, ".3f"),
-        "s",
-    )
+    avg_ttk = format(avg_ttk, ".3f")
+    print(f"Avg TTK of your gun under these circumstances is: {avg_ttk}s")
