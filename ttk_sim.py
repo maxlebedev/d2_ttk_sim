@@ -26,12 +26,11 @@ class Odds:
     bodyshot = 0
     headshot = 0
 
+
 restoration_x1_hp_per_s = 25
 restoration_x2_hp_per_s = 42.5
 rift_hp_per_s = 40
 healing_nade_heal = 30
-
-
 
 
 @dataclass
