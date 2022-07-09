@@ -1,14 +1,18 @@
 import random
+import yaml
+from types import SimpleNamespace
 
 import ttk_sim
-import example_weapons
+import example_weapons as ew
 
-# Because we are using seeded random values, the order of the tests matters
-# To add one more test to a weapon, populate the next ttk value, and recompute all following tests
-
-random.seed(1)
 ttk_sim.headshot_chance = 60
 ttk_sim.bodyshot_chance = 30
+
+def load_test_data():
+    with open('testing_ttks.yaml', 'r') as tests:
+        return SimpleNamespace(**yaml.safe_load(tests))
+
+td = load_test_data()
 
 def almost_equal(test, actual):
     return abs(test - actual) < 0.01
@@ -19,24 +23,33 @@ def check_ttk(weapon, expected_ttks):
         assert almost_equal(test_ttk, expected_ttk)
 
 def test_sturm():
-    ttks = [1.5, 0.5, 0.0, 0.0, 1.5, 2.0, 0.0, 1.5, 1.5, 1.0, 1.0, 1.5, 2.0, 0.5]
-    check_ttk(example_weapons.sturm, ttks)
+    random.seed(1)
+    check_ttk(ew.sturm, td.sturm)
 
 def test_drang():
-    ttks = [0.0, 1.0, 1.0, 0.8, 0.0, 0.8, 0.2, 0.0, 0.8, 0.8, 0.4, 1.0, 1.0, 1.2]
-    check_ttk(example_weapons.drang, ttks)
+    random.seed(1)
+    check_ttk(ew.drang, td.drang)
 
 def test_pom():
-    ttks = [0.33, 0.13, 1.4, 0.0, 0.4, 1.0, 1.33, 1.4, 1.4, 1.4, 2.07, 1.33, 0.67, 1.33]
-    check_ttk(example_weapons.piece_of_mind, ttks)
+    random.seed(1)
+    check_ttk(ew.piece_of_mind, td.piece_of_mind)
 
 def test_dmt():
-    ttks = [1.0, 0.5, 1.0, 1.0, 1.5, 0.5, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 2.0, 1.0]
-    check_ttk(example_weapons.dmt, ttks)
+    random.seed(1)
+    check_ttk(ew.dmt, td.dmt)
 
 def test_crimson():
-    ttks = [1.3, 1.3, 1.3, 1.3, 1.3, 1.07, 0.0, 0.43, 1.4, 0.53, 0.87, 1.3, 1.5, 1.3]
-    check_ttk(example_weapons.crimson, ttks)
+    random.seed(1)
+    check_ttk(ew.crimson, td.crimson)
+
+def generate_test():
+    for weapon in [ew.piece_of_mind, ew.sturm, ew.drang, ew.dmt, ew.crimson]:
+        random.seed(1)
+        pt = []
+        for _ in range(40):
+            ttk = ttk_sim.gunfight(weapon)
+            pt.append(round(ttk, 2))
+        print(f"{weapon.name}: {pt}")
 
 if __name__ == "__main__":
     # gen_ttks = lambda x: [round(ttk_sim.gunfight(x), 2) for _ in range(14)]

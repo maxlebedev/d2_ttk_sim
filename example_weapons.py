@@ -1,7 +1,7 @@
 import ttk_sim
 
 sturm = ttk_sim.Weapon(
-    name="Sturm",
+    name="sturm",
     mid_burst_time_between_shots=0,
     burst_type=1,
     bodyshot_damage=50,
@@ -10,7 +10,7 @@ sturm = ttk_sim.Weapon(
 )
 
 drang = ttk_sim.Weapon(
-    name="Drang",
+    name="drang",
     mid_burst_time_between_shots=0,
     burst_type=1,
     headshot_damage=50.5,
@@ -19,7 +19,7 @@ drang = ttk_sim.Weapon(
 )
 
 piece_of_mind = ttk_sim.Weapon(
-    name="Piece of Mind",
+    name="piece_of_mind",
     mid_burst_time_between_shots=60.0 / 900.0,
     burst_type=3,
     headshot_damage=23.8,
