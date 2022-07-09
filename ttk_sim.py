@@ -1,7 +1,7 @@
 # Assumes the first shot is always a headshot.
 # Assumes accuracy is consistent thereafter (ignores things like accuracy bloom).
 # Assumes unlimited mag size.
-# Assumes probabilities in lines 11-18.
+# Assumes probabilities in Odds class.
 
 
 # TODO: make a separate function to calculate damage bonuses
@@ -11,22 +11,27 @@ import random
 
 number_of_gunfights = 10000  # decrease this for faster simulation times; increase for more precise results
 
-overshield_chance = 0.08  # from barricade OR rift overshield
-restoration_chance = 0.1  # chance restoration is already active on an enemy
-rift_chance = 0.16
-already_damaged_chance = 0.35  # chance the enemy is already weak
-healing_nade_during_fight_chance = 0.03
-wormhusk_during_fight_chance = 0.0251
-classy_restoration_during_fight_chance = 0.05
-loreley_during_fight_chance = 0.04
+
+@dataclass
+class Odds:
+    overshield = 0.08  # from barricade OR rift overshield
+    restoration = 0.1  # chance restoration is already active on an enemy
+    rift = 0.16
+    already_damaged = 0.35  # chance the enemy is already weak
+    healing_nade_during_fight = 0.03
+    wormhusk_during_fight = 0.0251
+    classy_restoration_during_fight = 0.05
+    loreley_during_fight = 0.04
+
+    bodyshot = 0
+    headshot = 0
 
 restoration_x1_hp_per_s = 25
 restoration_x2_hp_per_s = 42.5
 rift_hp_per_s = 40
 healing_nade_heal = 30
 
-bodyshot_chance = 0
-headshot_chance = 0
+
 
 
 @dataclass
@@ -112,7 +117,7 @@ def getRandomHP():
 
 def getOvershield():
     overshield = 0.0
-    if random.random() < overshield_chance:
+    if random.random() < Odds.overshield:
         num = random.random()
         if num < 0.375:  # 3 in 8 chance the overshield is a full barricade overshield
             overshield = 45.0
@@ -127,7 +132,7 @@ def getOvershield():
 
 def getInitialDamage():
     initial_dmg = 0
-    if random.random() < already_damaged_chance:
+    if random.random() < Odds.already_damaged:
         weapon_type_chance = random.random()
         if weapon_type_chance < 0.074:
             # damaged by a 140 hc, the most common damage source
@@ -156,12 +161,12 @@ def getInitialDamage():
 def getInitialHealing():
     restoration_x1_duration = 0.0
     restoration_x2_duration = 0.0
-    if random.random() < restoration_chance:  # restoration active
+    if random.random() < Odds.restoration:  # restoration active
         if random.random() < 0.67:  # 2/3 chance it's restoration x1, 1/3 it's x2
             restoration_x1_duration = random.random() * 6.0
         else:
             restoration_x2_duration = random.random() * 6.0
-    if random.random() < rift_chance:
+    if random.random() < Odds.rift:
         rift_active = True
     else:
         rift_active = False
@@ -182,18 +187,18 @@ def getMidFightHeals():
                 thresh = None
         return thresh
 
-    if random.random() < healing_nade_during_fight_chance:
+    if random.random() < Odds.healing_nade_during_fight:
         healing_nade_proc_hp = get_thresh()
 
-    if random.random() < wormhusk_during_fight_chance:
+    if random.random() < Odds.wormhusk_during_fight:
         wormhusk_proc_hp = get_thresh()
 
     if not wormhusk_proc_hp or wormhusk_proc_hp < 0:
-        if random.random() < classy_restoration_during_fight_chance:
+        if random.random() < Odds.classy_restoration_during_fight:
             classy_proc_hp = get_thresh()
 
     if not (wormhusk_proc_hp or classy_proc_hp):
-        if random.random() < loreley_during_fight_chance:
+        if random.random() < Odds.loreley_during_fight:
             loreley_proc_hp = 70.0
 
     return healing_nade_proc_hp, wormhusk_proc_hp, classy_proc_hp, loreley_proc_hp
@@ -296,13 +301,13 @@ def gunfight(weapon):
 
         # hit head, hit body, or miss
         shot_location = random.random()
-        if shot_location < bodyshot_chance:  # if this shot is a bodyshot
+        if shot_location < Odds.bodyshot:  # if this shot is a bodyshot
             if weapon.name == "dmt":
                 enemy_hp -= weapon.bodyshot_damage + (headshots) * 1.82
             else:
                 enemy_hp -= weapon.bodyshot_damage
 
-        elif shot_location < (bodyshot_chance + headshot_chance):
+        elif shot_location < (Odds.bodyshot + headshot_chance):
             if weapon.name == "dmt":
                 enemy_hp -= weapon.headshot_damage + (headshots) * 3.22
             else:
@@ -314,8 +319,8 @@ def gunfight(weapon):
 
 
 if __name__ == "__main__":
-    headshot_chance = float(input("Chance to headshot?\n")) / 100.0
-    bodyshot_chance = float(input("Chance to bodyshot?\n")) / 100.0
+    Odds.headshot = float(input("Chance to headshot?\n")) / 100.0
+    Odds.bodyshot = float(input("Chance to bodyshot?\n")) / 100.0
     weapon = make_weapon()
     avg_ttk = get_avg_ttk(weapon, number_of_gunfights)
     print(

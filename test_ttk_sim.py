@@ -5,8 +5,8 @@ from types import SimpleNamespace
 import ttk_sim
 import example_weapons as ew
 
-ttk_sim.headshot_chance = 60
-ttk_sim.bodyshot_chance = 30
+ttk_sim.Odds.headshot = 60
+ttk_sim.Odds.bodyshot = 30
 
 
 def load_test_data():
