@@ -9,7 +9,7 @@ ttk_sim.headshot_chance = 60
 ttk_sim.bodyshot_chance = 30
 
 def load_test_data():
-    with open('testing_ttks.yaml', 'r') as tests:
+    with open('expected_ttks.yaml', 'r') as tests:
         return SimpleNamespace(**yaml.safe_load(tests))
 
 td = load_test_data()
