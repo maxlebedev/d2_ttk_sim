@@ -266,7 +266,7 @@ def gunfight(weapon):
         # check for mid fight heals
         # healing nade
         if healing_nade_proc_hp and enemy_hp < healing_nade_proc_hp:
-            enemy_hp += 30
+            enemy_hp += healing_nade_heal
             if random.random() < 0.67:  # restoration x1
                 restoration_x1_duration, restoration_x2_duration = add_a_resto(
                     restoration_x2_duration
